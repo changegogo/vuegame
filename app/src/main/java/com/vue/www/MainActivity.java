@@ -1,33 +1,45 @@
 package com.vue.www;
 
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Message;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-
+    private Context mContext;
+    private RelativeLayout mRLayout;
     private WebView mWebView;
-    private String mBaseUrl = "http://xin.feicuiedu.com:3000";
-    private View mErrorView;
+    // http://app.xiaomi.com/home
+    // http://xin.feicuiedu.com:3000/#/recommend
+    private String[] mBaseUrl = {"http://app.xiaomi.com/home","http://xin.feicuiedu.com:3000/#/recommend"};
+    private boolean mIsError;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mContext = MainActivity.this;
+        mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
         mWebView = (WebView) findViewById(R.id.web_view);
+        //showProgressDialog();
+        initEvent();
 
         WebSettings mWebSettings = mWebView.getSettings();
         mWebSettings.setSupportZoom(true);
@@ -40,12 +52,43 @@ public class MainActivity extends AppCompatActivity {
 
         saveData(mWebSettings);
         newWin(mWebSettings);
-
         mWebView.setWebViewClient(webViewClient);
         mWebView.setWebChromeClient(webChromeClient);
-
-        mWebView.loadUrl(mBaseUrl);
+        mWebView.setDownloadListener(downloadListener);
+        mWebView.loadUrl(mBaseUrl[rand0_1()]);
     }
+
+    private int rand0_1(){
+        return (int)(Math.random()*2);
+    }
+
+    private void initEvent(){
+        mRLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mWebView!=null && mWebView.getVisibility()==View.INVISIBLE){
+                    mRLayout.setClickable(false);
+                    mIsError = false;
+                    mWebView.reload();
+                }
+            }
+        });
+    }
+
+    DownloadListener downloadListener =  new DownloadListener(){
+
+        @Override
+        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+            Log.i("load", "url="+url);
+            Log.i("load", "userAgent="+userAgent);
+            Log.i("load", "contentDisposition="+contentDisposition);
+            Log.i("load", "mimetype="+mimetype);
+            Log.i("load", "contentLength="+contentLength);
+            Uri uri = Uri.parse(url);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            startActivity(intent);
+        }
+    };
 
     WebViewClient webViewClient = new WebViewClient(){
         /**
@@ -59,13 +102,55 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            showProgressDialog();
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            Log.i("load", "加载完成:"+url);
+            closeProgressDialog();
+            mRLayout.setClickable(true);
+            if(mIsError){
+                mRLayout.setVisibility(View.VISIBLE);
+                mWebView.setVisibility(View.INVISIBLE);
+            }else{
+                mRLayout.setVisibility(View.INVISIBLE);
+                mWebView.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             Log.i("load", "加载错误");
+            mRLayout.setClickable(true);
+            mIsError = true;
             showErrorPage();
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            handler.proceed();
         }
     };
 
+    protected void showErrorPage() {
+        if(mIsError && mRLayout != null && mRLayout.getVisibility()==View.INVISIBLE ){
+            mRLayout.setVisibility(View.VISIBLE);
+            mWebView.setVisibility(View.INVISIBLE);
+        }
+    }
+
+
     WebChromeClient webChromeClient = new WebChromeClient() {
+        @Override
+        public void onProgressChanged(WebView view, int newProgress) {
+            if(newProgress==100){
+                Log.i("load", "关闭newProgress:"+newProgress);
+                closeProgressDialog();
+            }
+        }
+
         // HTML5定位
         @Override
         public void onReceivedIcon(WebView view, Bitmap icon) {
@@ -82,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
             callback.invoke(origin, true, false);//注意个函数，第二个参数就是是否同意定位权限，第三个是是否希望内核记住
             super.onGeolocationPermissionsShowPrompt(origin, callback);
         }
-        //=========多窗口的问题==========================================================
+
         @Override
         public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
             WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
@@ -90,46 +175,7 @@ public class MainActivity extends AppCompatActivity {
             resultMsg.sendToTarget();
             return true;
         }
-        //=========多窗口的问题==========================================================
     };
-
-    boolean mIsErrorPage;
-    protected void showErrorPage() {
-        initErrorPage();//初始化自定义页面
-        LinearLayout webParentView = hideErrorPage();
-        @SuppressWarnings("deprecation")
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewPager.LayoutParams.FILL_PARENT, ViewPager.LayoutParams.FILL_PARENT);
-        webParentView.addView(mErrorView, 0, lp);
-        mIsErrorPage = true;
-    }
-    /****
-     * 把系统自身请求失败时的网页隐藏
-     */
-    protected LinearLayout hideErrorPage() {
-        LinearLayout webParentView = (LinearLayout)mWebView.getParent();
-
-        mIsErrorPage = false;
-        while (webParentView.getChildCount() > 1) {
-            webParentView.removeViewAt(0);
-        }
-        return webParentView;
-    }
-    /***
-     * 显示加载失败时自定义的网页
-     */
-    protected void initErrorPage() {
-        if (mErrorView == null) {
-            mErrorView = View.inflate(this, R.layout.activity_error, null);
-            RelativeLayout layout = (RelativeLayout)mErrorView.findViewById(R.id.online_error_btn_retry);
-            layout.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    Toast.makeText(MainActivity.this, "加载...", Toast.LENGTH_SHORT).show();
-                    mWebView.reload();
-                }
-            });
-            mErrorView.setOnClickListener(null);
-        }
-    }
 
     /**
      * 多窗口的问题
@@ -149,10 +195,10 @@ public class MainActivity extends AppCompatActivity {
         mWebSettings.setDomStorageEnabled(true);
         mWebSettings.setDatabaseEnabled(true);
         mWebSettings.setAppCacheEnabled(true);
+        mWebSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         String appCachePath = getApplicationContext().getCacheDir().getAbsolutePath();
         mWebSettings.setAppCachePath(appCachePath);
     }
-
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
@@ -162,10 +208,55 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    private ProgressDialog mDialog;
+    private void showProgressDialog(){
+        if(mDialog==null){
+            mDialog = new ProgressDialog(mContext);
+            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);//设置风格为圆形进度条
+            mDialog.setMessage("正在加载 ，请等待...");
+            mDialog.setIndeterminate(false);//设置进度条是否为不明确
+            mDialog.setCancelable(true);//设置进度条是否可以按退回键取消
+            mDialog.setCanceledOnTouchOutside(false);
+            mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    mDialog=null;
+                }
+            });
+            mDialog.show();
+        }
+    }
+    private void closeProgressDialog(){
+        if(mDialog!=null){
+            mDialog.dismiss();
+            mDialog=null;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mWebView != null){
+            mWebView.onPause();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mWebView != null){
+            mWebView.onResume();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        ((LinearLayout) mWebView.getParent()).removeView(mWebView);
-        mWebView.destroy();
+        ((RelativeLayout) mWebView.getParent()).removeView(mWebView);
+        if (mWebView != null) {
+            Log.e("load", "webview destroy");
+            mWebView.destroy();
+        }
     }
 }
