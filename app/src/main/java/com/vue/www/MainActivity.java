@@ -1,8 +1,6 @@
 package com.vue.www;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -22,6 +20,8 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.vue.www.view.CustomDialog;
 
 public class MainActivity extends AppCompatActivity {
     private Context mContext;
@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
         mWebView = (WebView) findViewById(R.id.web_view);
         mReturn = (LinearLayout) findViewById(R.id.return_layout);
         mTitle = (TextView) findViewById(R.id.title_content);
-        //showProgressDialog();
         initEvent();
 
         WebSettings mWebSettings = mWebView.getSettings();
@@ -245,22 +244,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    private ProgressDialog mDialog;
+    private CustomDialog mDialog;
     private void showProgressDialog(){
-        if(mDialog==null){
-            mDialog = new ProgressDialog(mContext);
-            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);//设置风格为圆形进度条
-            mDialog.setMessage("正在加载 ，请等待...");
-            mDialog.setIndeterminate(false);//设置进度条是否为不明确
-            mDialog.setCancelable(true);//设置进度条是否可以按退回键取消
-            mDialog.setCanceledOnTouchOutside(false);
-            mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    mDialog=null;
-                }
-            });
+        if(mDialog == null){
+            mDialog = new CustomDialog(this, R.style.CustomDialog);
             mDialog.show();
             Log.i("load", "mDialog show");
         }
