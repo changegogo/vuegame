@@ -6,21 +6,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private Context mContext;
@@ -28,8 +29,15 @@ public class MainActivity extends AppCompatActivity {
     private WebView mWebView;
     // http://app.xiaomi.com/home
     // http://xin.feicuiedu.com:3000/#/recommend
-    private String[] mBaseUrl = {"http://app.xiaomi.com/home","http://xin.feicuiedu.com:3000/#/recommend"};
+    private String[] mBaseUrl = {
+            "http://app.xiaomi.com/home",
+            "http://xin.feicuiedu.com:3000/#/recommend",
+            "http://xin.feicuiedu.com:8088/feicuiwb/wap"
+    };
     private boolean mIsError;
+    private LinearLayout mReturn;
+    private TextView mTitle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
         mContext = MainActivity.this;
         mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
         mWebView = (WebView) findViewById(R.id.web_view);
+        mReturn = (LinearLayout) findViewById(R.id.return_layout);
+        mTitle = (TextView) findViewById(R.id.title_content);
         //showProgressDialog();
         initEvent();
 
@@ -55,11 +65,12 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebViewClient(webViewClient);
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setDownloadListener(downloadListener);
-        mWebView.loadUrl(mBaseUrl[rand0_1()]);
+        //mBaseUrl[rand0_2()]
+        mWebView.loadUrl(mBaseUrl[rand0_2()]);
     }
 
-    private int rand0_1(){
-        return (int)(Math.random()*2);
+    private int rand0_2(){
+        return (int)(Math.random()*3);
     }
 
     private void initEvent(){
@@ -71,6 +82,17 @@ public class MainActivity extends AppCompatActivity {
                     mIsError = false;
                     mWebView.reload();
                 }
+            }
+        });
+        mReturn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWebView.canGoBack()) {
+                    mWebView.goBack();
+                }else{
+                    MainActivity.this.finish();
+                }
+
             }
         });
     }
@@ -96,9 +118,15 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            view.loadUrl(url);
             Log.i("load", "加载了");
-            return true;
+            if(!TextUtils.isEmpty(url) && url.endsWith("apk")){
+                //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                //startActivity(viewIntent);
+            }else{
+                view.loadUrl(url);
+                return true;
+            }
+            return super.shouldOverrideUrlLoading(view, url);
         }
 
         @Override
@@ -128,10 +156,10 @@ public class MainActivity extends AppCompatActivity {
             showErrorPage();
         }
 
-        @Override
+        /*@Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             handler.proceed();
-        }
+        }*/
     };
 
     protected void showErrorPage() {
@@ -141,20 +169,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     WebChromeClient webChromeClient = new WebChromeClient() {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
-            if(newProgress==100){
+            if(newProgress>=100){
                 Log.i("load", "关闭newProgress:"+newProgress);
                 closeProgressDialog();
             }
         }
 
-        // HTML5定位
         @Override
-        public void onReceivedIcon(WebView view, Bitmap icon) {
-            super.onReceivedIcon(view, icon);
+        public void onReceivedTitle(WebView view, String title) {
+            Log.i("load", mIsError+"<-title->"+title);
+            if(!mIsError && !title.contains(".")){
+                MainActivity.this.setTitle(title);
+            }else{
+                MainActivity.this.setTitle("");
+            }
         }
 
         @Override
@@ -176,6 +207,12 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     };
+
+    private void setTitle(String title){
+        if(mTitle!=null){
+            mTitle.setText(title);
+        }
+    }
 
     /**
      * 多窗口的问题
@@ -225,12 +262,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             mDialog.show();
+            Log.i("load", "mDialog show");
         }
     }
     private void closeProgressDialog(){
         if(mDialog!=null){
             mDialog.dismiss();
             mDialog=null;
+            Log.i("load", "mDialog hide");
         }
     }
 
