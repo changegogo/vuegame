@@ -1,4 +1,4 @@
-package com.vue.www;
+package com.vue.www.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.vue.www.R;
 import com.vue.www.view.CustomDialog;
 
 public class MainActivity extends AppCompatActivity {

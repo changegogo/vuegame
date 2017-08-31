@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.vue.www.MainActivity">
+    tools:context="com.vue.www.activity.MainActivity">
     <RelativeLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -23,23 +23,20 @@
                 android:id="@+id/return_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="horizontal">
-                <TextView
+                <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/gray"
-                    android:textSize="18sp"
-                    style="@style/baseTextStyle"
-                    android:text="返回"/>
+                    android:background="@drawable/ic_back41"
+                    />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="8"
                 android:orientation="horizontal">
-
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
@@ -64,26 +61,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#ffffff"
-        android:visibility="invisible"
-        android:gravity="center">
+        android:visibility="invisible">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/gray">
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:textSize="25sp"
-                android:text="数据获取失败"/>
-            <TextView
-                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_weight="6">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/ic_wifi_black_70dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/error_color"
+                    android:textSize="25sp"
+                    android:text="数据获取失败"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/error_color"
+                    android:textSize="25sp"
+                    android:layout_marginTop="8dp"
+                    style="@style/baseTextStyle"
+                    android:text="请检查网络点击重试"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:textSize="25sp"
-                style="@style/baseTextStyle"
-                android:text="请检查网络点击重试"/>
+                android:layout_weight="1"></LinearLayout>
+
         </LinearLayout>
     </RelativeLayout>
     <WebView
