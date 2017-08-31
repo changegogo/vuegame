@@ -1,6 +1,5 @@
 package com.vue.www.activity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,7 +24,6 @@ import com.vue.www.R;
 import com.vue.www.view.CustomDialog;
 
 public class MainActivity extends AppCompatActivity {
-    private Context mContext;
     private RelativeLayout mRLayout;
     private WebView mWebView;
     // http://app.xiaomi.com/home
@@ -44,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mContext = MainActivity.this;
         mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
         mWebView = (WebView) findViewById(R.id.web_view);
         mReturn = (LinearLayout) findViewById(R.id.return_layout);
@@ -66,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setDownloadListener(downloadListener);
         //mBaseUrl[rand0_2()]
-        mWebView.loadUrl(mBaseUrl[rand0_2()]);
+        mWebView.loadUrl(mBaseUrl[rand0_1()]);
     }
 
-    private int rand0_2(){
-        return (int)(Math.random()*3);
+    private int rand0_1(){
+        return (int)(Math.random()*2);
     }
 
     private void initEvent(){
@@ -92,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     MainActivity.this.finish();
                 }
-
             }
         });
     }
@@ -119,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Log.i("load", "加载了");
-            if(!TextUtils.isEmpty(url) && url.endsWith("apk")){
+            if(!TextUtils.isEmpty(url) && (url.endsWith("apk") || url.contains("download"))){
                 //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 //startActivity(viewIntent);
             }else{
@@ -150,10 +146,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            Log.i("load", "加载错误");
+            Log.i("load", "加载错误->failingUrl:"+failingUrl);
+
             mRLayout.setClickable(true);
             mIsError = true;
             showErrorPage();
+
         }
 
         /*@Override
@@ -184,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
             if(!mIsError && !title.contains(".")){
                 MainActivity.this.setTitle(title);
             }else{
-                MainActivity.this.setTitle("");
+                MainActivity.this.setTitle("请检查网络");
             }
         }
 

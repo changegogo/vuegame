@@ -42,7 +42,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if(x!=null&&splashhandler!=null){
-            x.postDelayed(splashhandler, 3000);
+            x.postDelayed(splashhandler, 2000);
         }
     }
 }
