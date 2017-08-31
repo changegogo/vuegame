@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private String[] mBaseUrl = {
             "http://app.xiaomi.com/home",
             "http://xin.feicuiedu.com:3000/#/recommend",
-            "http://xin.feicuiedu.com:8088/feicuiwb/wap"
+            "file:///android_asset/vuerouter.html"
     };
     private boolean mIsError;
     private LinearLayout mReturn;
@@ -63,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setDownloadListener(downloadListener);
         //mBaseUrl[rand0_2()]
-        mWebView.loadUrl(mBaseUrl[rand0_1()]);
+        mWebView.loadUrl(mBaseUrl[rand0_2()]);
     }
 
-    private int rand0_1(){
-        return (int)(Math.random()*2);
+    private int rand0_2(){
+        return (int)(Math.random()*3);
     }
 
     private void initEvent(){
