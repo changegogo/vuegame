@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="gray">#e1dddd</color>
     <color name="error_color">#b2000000</color>
+    <color name="header_gray">#707070</color>
 </resources>

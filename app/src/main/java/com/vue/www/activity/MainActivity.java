@@ -1,7 +1,9 @@
 package com.vue.www.activity;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
@@ -21,31 +23,27 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vue.www.R;
+import com.vue.www.receiver.NetWorkStateReceiver;
+import com.vue.www.utils.NetWorkCheck;
 import com.vue.www.view.CustomDialog;
+import com.vue.www.view.ToastSelf;
 
 public class MainActivity extends AppCompatActivity {
     private RelativeLayout mRLayout;
     private WebView mWebView;
-    // http://app.xiaomi.com/home
-    // http://xin.feicuiedu.com:3000/#/recommend
-    private String[] mBaseUrl = {
-            "http://app.xiaomi.com/home",
-            "http://xin.feicuiedu.com:3000/#/recommend",
-            "file:///android_asset/vuerouter.html"
-    };
     private boolean mIsError;
     private LinearLayout mReturn;
     private TextView mTitle;
+    private TextView mClose;
+    private NetWorkStateReceiver netWorkStateReceiver;
+    private ToastSelf mToastSelf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
-        mWebView = (WebView) findViewById(R.id.web_view);
-        mReturn = (LinearLayout) findViewById(R.id.return_layout);
-        mTitle = (TextView) findViewById(R.id.title_content);
+        initView();
         initEvent();
 
         WebSettings mWebSettings = mWebView.getSettings();
@@ -63,11 +61,16 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setDownloadListener(downloadListener);
         //mBaseUrl[rand0_2()]
-        mWebView.loadUrl(mBaseUrl[rand0_2()]);
+        mWebView.loadUrl("file:///android_asset/index.html");
     }
 
-    private int rand0_2(){
-        return (int)(Math.random()*3);
+    private void initView() {
+        mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
+        mWebView = (WebView) findViewById(R.id.web_view);
+        mReturn = (LinearLayout) findViewById(R.id.return_layout);
+        mTitle = (TextView) findViewById(R.id.title_content);
+        mClose = (TextView) findViewById(R.id.close_main);
+        mToastSelf = new ToastSelf(this);
     }
 
     private void initEvent(){
@@ -91,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        mClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.finish();
+            }
+        });
     }
 
     DownloadListener downloadListener =  new DownloadListener(){
@@ -109,12 +118,15 @@ public class MainActivity extends AppCompatActivity {
     };
 
     WebViewClient webViewClient = new WebViewClient(){
-        /**
-         * 多页面在同一个WebView中打开，就是不新建activity或者调用系统浏览器打开
-         */
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.i("load", "加载了");
+            Uri uri = Uri.parse(url);
+            if ( uri.getScheme().equals("js")) {
+                if (uri.getAuthority().equals("webview")) {
+                    NetWorkCheck.check(MainActivity.this, mToastSelf);
+                }
+                return true;
+            }
             if(!TextUtils.isEmpty(url) && (url.endsWith("apk") || url.contains("download"))){
                 //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 //startActivity(viewIntent);
@@ -133,6 +145,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             Log.i("load", "加载完成:"+url);
+            // 设置标题
+            if(url.contains("game")){
+                MainActivity.this.setTitle("游戏");
+            }else if(url.contains("openarea")){
+                MainActivity.this.setTitle("开服");
+            }else if(url.contains("search")){
+                MainActivity.this.setTitle("搜索");
+            }else if(url.contains("rank")){
+                MainActivity.this.setTitle("排行");
+            }
             closeProgressDialog();
             mRLayout.setClickable(true);
             if(mIsError){
@@ -147,17 +169,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             Log.i("load", "加载错误->failingUrl:"+failingUrl);
-
             mRLayout.setClickable(true);
             mIsError = true;
             showErrorPage();
 
         }
-
-        /*@Override
-        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            handler.proceed();
-        }*/
     };
 
     protected void showErrorPage() {
@@ -262,6 +278,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        unregisterReceiver(netWorkStateReceiver);
+        mToastSelf.cancelToast();
         if (mWebView != null){
             mWebView.onPause();
         }
@@ -270,6 +288,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (netWorkStateReceiver == null) {
+            netWorkStateReceiver = new NetWorkStateReceiver();
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netWorkStateReceiver, filter);
+        System.out.println("注册netWorkStateReceiver");
         if (mWebView != null){
             mWebView.onResume();
         }
