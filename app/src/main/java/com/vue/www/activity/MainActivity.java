@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         newWin(mWebSettings);
         mWebView.setWebViewClient(webViewClient);
         mWebView.setWebChromeClient(webChromeClient);
-        mWebView.setDownloadListener(downloadListener);
+       // mWebView.setDownloadListener(downloadListener);
         //mBaseUrl[rand0_2()]
         mWebView.loadUrl("file:///android_asset/index.html");
     }
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             if(!TextUtils.isEmpty(url) && (url.endsWith("apk") || url.contains("download"))){
-                //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                //startActivity(viewIntent);
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(viewIntent);
             }else{
                 view.loadUrl(url);
                 return true;
@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             }else if(url.contains("rank")){
                 MainActivity.this.setTitle("排行");
             }
+
             closeProgressDialog();
             mRLayout.setClickable(true);
             if(mIsError){
@@ -164,15 +165,17 @@ public class MainActivity extends AppCompatActivity {
                 mRLayout.setVisibility(View.INVISIBLE);
                 mWebView.setVisibility(View.VISIBLE);
             }
+
+
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             Log.i("load", "加载错误->failingUrl:"+failingUrl);
+
             mRLayout.setClickable(true);
             mIsError = true;
             showErrorPage();
-
         }
     };
 
@@ -246,9 +249,13 @@ public class MainActivity extends AppCompatActivity {
         mWebSettings.setDomStorageEnabled(true);
         mWebSettings.setDatabaseEnabled(true);
         mWebSettings.setAppCacheEnabled(true);
-        mWebSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        mWebSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         String appCachePath = getApplicationContext().getCacheDir().getAbsolutePath();
         mWebSettings.setAppCachePath(appCachePath);
+
+       /* if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }*/
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
