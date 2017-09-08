@@ -46,4 +46,25 @@ public class NetWorkCheck {
             }
         }
     }
+
+    public static boolean check(Context context){
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+            ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+            if(!wifiNetworkInfo.isConnected() && !dataNetworkInfo.isConnected()){
+                return false;
+            }else{
+                return true;
+            }
+        }else {
+            ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            Network[] networks = connMgr.getAllNetworks();
+            if(networks.length <= 0){
+                return false;
+            }else{
+                return true;
+            }
+        }
+    }
 }

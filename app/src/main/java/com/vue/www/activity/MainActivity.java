@@ -1,5 +1,6 @@
 package com.vue.www.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -14,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -28,6 +30,8 @@ import com.vue.www.utils.NetWorkCheck;
 import com.vue.www.view.CustomDialog;
 import com.vue.www.view.ToastSelf;
 
+import static com.vue.www.utils.NetWorkCheck.check;
+
 public class MainActivity extends AppCompatActivity {
     private RelativeLayout mRLayout;
     private WebView mWebView;
@@ -38,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private NetWorkStateReceiver netWorkStateReceiver;
     private ToastSelf mToastSelf;
 
+    @SuppressLint("JavascriptInterface")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,9 +64,19 @@ public class MainActivity extends AppCompatActivity {
         newWin(mWebSettings);
         mWebView.setWebViewClient(webViewClient);
         mWebView.setWebChromeClient(webChromeClient);
-       // mWebView.setDownloadListener(downloadListener);
-        //mBaseUrl[rand0_2()]
+        mWebView.setDownloadListener(downloadListener);
+
+        mWebView.addJavascriptInterface(new AndroidtoJs(), "myObj");
+
         mWebView.loadUrl("file:///android_asset/index.html");
+    }
+
+    public class AndroidtoJs extends Object{
+        @JavascriptInterface
+        public boolean checknet(String param){
+            Log.i("AndroidtoJs", param);
+            return NetWorkCheck.check(MainActivity.this);
+        }
     }
 
     private void initView() {
@@ -80,7 +95,10 @@ public class MainActivity extends AppCompatActivity {
                 if(mWebView!=null && mWebView.getVisibility()==View.INVISIBLE){
                     mRLayout.setClickable(false);
                     mIsError = false;
-                    mWebView.reload();
+                    if (mWebView.canGoBack()) {
+                        mWebView.goBack();
+                    }
+                   // mWebView.reload();
                 }
             }
         });
@@ -123,13 +141,13 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = Uri.parse(url);
             if ( uri.getScheme().equals("js")) {
                 if (uri.getAuthority().equals("webview")) {
-                    NetWorkCheck.check(MainActivity.this, mToastSelf);
+                    check(MainActivity.this, mToastSelf);
                 }
                 return true;
             }
             if(!TextUtils.isEmpty(url) && (url.endsWith("apk") || url.contains("download"))){
-                Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(viewIntent);
+                //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                //startActivity(viewIntent);
             }else{
                 view.loadUrl(url);
                 return true;
@@ -165,14 +183,11 @@ public class MainActivity extends AppCompatActivity {
                 mRLayout.setVisibility(View.INVISIBLE);
                 mWebView.setVisibility(View.VISIBLE);
             }
-
-
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             Log.i("load", "加载错误->failingUrl:"+failingUrl);
-
             mRLayout.setClickable(true);
             mIsError = true;
             showErrorPage();
