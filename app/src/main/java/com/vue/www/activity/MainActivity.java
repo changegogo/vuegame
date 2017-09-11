@@ -2,15 +2,12 @@ package com.vue.www.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.DownloadListener;
@@ -25,11 +22,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vue.www.R;
-import com.vue.www.receiver.NetWorkStateReceiver;
 import com.vue.www.utils.NetWorkCheck;
 import com.vue.www.view.CustomDialog;
 import com.vue.www.view.ToastSelf;
 
+import static android.util.Log.i;
 import static com.vue.www.utils.NetWorkCheck.check;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout mReturn;
     private TextView mTitle;
     private TextView mClose;
-    private NetWorkStateReceiver netWorkStateReceiver;
+    //private NetWorkStateReceiver netWorkStateReceiver;
     private ToastSelf mToastSelf;
 
     @SuppressLint("JavascriptInterface")
@@ -74,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public class AndroidtoJs extends Object{
         @JavascriptInterface
         public boolean checknet(String param){
-            Log.i("AndroidtoJs", param);
+            i("AndroidtoJs", param);
             return NetWorkCheck.check(MainActivity.this);
         }
     }
@@ -124,11 +121,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-            Log.i("load", "url="+url);
-            Log.i("load", "userAgent="+userAgent);
-            Log.i("load", "contentDisposition="+contentDisposition);
-            Log.i("load", "mimetype="+mimetype);
-            Log.i("load", "contentLength="+contentLength);
+            i("load", "url="+url);
+            i("load", "userAgent="+userAgent);
+            i("load", "contentDisposition="+contentDisposition);
+            i("load", "mimetype="+mimetype);
+            i("load", "contentLength="+contentLength);
             Uri uri = Uri.parse(url);
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             startActivity(intent);
@@ -162,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            Log.i("load", "加载完成:"+url);
+            i("load", "加载完成:"+url);
             // 设置标题
             if(url.contains("game")){
                 MainActivity.this.setTitle("游戏");
@@ -187,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            Log.i("load", "加载错误->failingUrl:"+failingUrl);
+            i("load", "加载错误->failingUrl:"+failingUrl);
             mRLayout.setClickable(true);
             mIsError = true;
             showErrorPage();
@@ -205,14 +202,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
             if(newProgress>=100){
-                Log.i("load", "关闭newProgress:"+newProgress);
+                i("load", "关闭newProgress:"+newProgress);
                 closeProgressDialog();
             }
         }
 
         @Override
         public void onReceivedTitle(WebView view, String title) {
-            Log.i("load", mIsError+"<-title->"+title);
+            i("load", mIsError+"<-title->"+title);
             if(!mIsError && !title.contains(".")){
                 MainActivity.this.setTitle(title);
             }else{
@@ -268,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
         String appCachePath = getApplicationContext().getCacheDir().getAbsolutePath();
         mWebSettings.setAppCachePath(appCachePath);
 
-       /* if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
+        /*if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }*/
     }
@@ -286,49 +283,47 @@ public class MainActivity extends AppCompatActivity {
         if(mDialog == null){
             mDialog = new CustomDialog(this, R.style.CustomDialog);
             mDialog.show();
-            Log.i("load", "mDialog show");
         }
     }
     private void closeProgressDialog(){
         if(mDialog!=null){
             mDialog.dismiss();
             mDialog=null;
-            Log.i("load", "mDialog hide");
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(netWorkStateReceiver);
+        //unregisterReceiver(netWorkStateReceiver);
         mToastSelf.cancelToast();
-        if (mWebView != null){
+        /*if (mWebView != null){
             mWebView.onPause();
-        }
+        }*/
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (netWorkStateReceiver == null) {
+        /*if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
-        System.out.println("注册netWorkStateReceiver");
-        if (mWebView != null){
+        System.out.println("注册netWorkStateReceiver");*/
+        /*if (mWebView != null){
             mWebView.onResume();
-        }
+        }*/
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         ((RelativeLayout) mWebView.getParent()).removeView(mWebView);
-        if (mWebView != null) {
+        /*if (mWebView != null) {
             Log.e("load", "webview destroy");
             mWebView.destroy();
-        }
+        }*/
     }
 }
