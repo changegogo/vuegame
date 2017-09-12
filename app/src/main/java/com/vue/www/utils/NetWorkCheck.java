@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.widget.Toast;
 
 import com.vue.www.view.ToastSelf;
 
@@ -15,16 +16,13 @@ import com.vue.www.view.ToastSelf;
 public class NetWorkCheck {
     public static void check(Context context, ToastSelf toast){
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
-
             //获得ConnectivityManager对象
             ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
             //获取ConnectivityManager对象对应的NetworkInfo对象
             //获取WIFI连接的信息
             NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             //获取移动数据连接的信息
             NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-
             if(!wifiNetworkInfo.isConnected() && !dataNetworkInfo.isConnected()){
                 if(toast != null){
                     toast.showToast("网络未连接!");
@@ -53,6 +51,7 @@ public class NetWorkCheck {
             NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
             if(!wifiNetworkInfo.isConnected() && !dataNetworkInfo.isConnected()){
+                Toast.makeText(context, "网络未连接", Toast.LENGTH_SHORT).show();
                 return false;
             }else{
                 return true;
@@ -61,6 +60,7 @@ public class NetWorkCheck {
             ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             Network[] networks = connMgr.getAllNetworks();
             if(networks.length <= 0){
+                Toast.makeText(context, "网络未连接", Toast.LENGTH_SHORT).show();
                 return false;
             }else{
                 return true;

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vue.www.R;
 import com.vue.www.utils.NetWorkCheck;
@@ -44,9 +46,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initView();
-        initEvent();
+        setListener();
 
         WebSettings mWebSettings = mWebView.getSettings();
         mWebSettings.setSupportZoom(true);
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initView() {
+    protected void initView() {
         mRLayout = (RelativeLayout) findViewById(R.id.load_error_layout);
         mWebView = (WebView) findViewById(R.id.web_view);
         mReturn = (LinearLayout) findViewById(R.id.return_layout);
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         mToastSelf = new ToastSelf(this);
     }
 
-    private void initEvent(){
+    protected void setListener(){
         mRLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -265,14 +266,23 @@ public class MainActivity extends AppCompatActivity {
         String appCachePath = getApplicationContext().getCacheDir().getAbsolutePath();
         mWebSettings.setAppCachePath(appCachePath);
 
-        /*if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
-        }*/
+        }
     }
-
+    private long mkeyTime;
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
             mWebView.goBack();
+            return true;
+        }
+        if(keyCode == KeyEvent.KEYCODE_BACK && !mWebView.canGoBack()) {
+            if ((System.currentTimeMillis() - mkeyTime) > 2000) {
+                mkeyTime = System.currentTimeMillis();
+                Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_LONG).show();
+            } else {
+                finish();
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -305,6 +315,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         /*if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
@@ -320,10 +331,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        ((RelativeLayout) mWebView.getParent()).removeView(mWebView);
-        /*if (mWebView != null) {
+        /*((RelativeLayout) mWebView.getParent()).removeView(mWebView);
+        if (mWebView != null) {
             Log.e("load", "webview destroy");
             mWebView.destroy();
         }*/
     }
+
+
 }

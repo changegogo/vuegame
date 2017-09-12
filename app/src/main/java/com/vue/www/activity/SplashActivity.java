@@ -3,19 +3,24 @@ package com.vue.www.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 
+import com.gyf.barlibrary.ImmersionBar;
 import com.vue.www.R;
 
-public class SplashActivity extends AppCompatActivity {
+public class SplashActivity extends BaseActivity {
     private Splashhandler splashhandler;
     private Handler x;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
         showSplash();
+        ImmersionBar.with(this).transparentNavigationBar().init();
+    }
+
+    @Override
+    protected int setLayoutId() {
+        return R.layout.activity_splash;
     }
 
     class Splashhandler implements Runnable{
