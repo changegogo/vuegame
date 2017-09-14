@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">vue</string>
+    <string name="app_name">游戏盒子</string>
     <string name="loading">加载中......</string>
     <string name="fetch_data_fail">数据获取失败</string>
     <string name="fetch_data_repeat">请检查网络点击重试</string>
