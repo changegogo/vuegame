@@ -1,6 +1,7 @@
 package com.vue.www.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.DownloadListener;
@@ -27,6 +29,9 @@ import com.vue.www.R;
 import com.vue.www.utils.NetWorkCheck;
 import com.vue.www.view.CustomDialog;
 import com.vue.www.view.ToastSelf;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.util.Log.i;
 import static com.vue.www.utils.NetWorkCheck.check;
@@ -64,16 +69,30 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setDownloadListener(downloadListener);
 
-        mWebView.addJavascriptInterface(new AndroidtoJs(), "myObj");
+        mWebView.addJavascriptInterface(new AndroidtoJs(this), "myObj");
 
         mWebView.loadUrl("file:///android_asset/index.html");
     }
 
-    public class AndroidtoJs extends Object{
+    public class AndroidtoJs{
+        private Context context;
+        public AndroidtoJs(Context context){
+            this.context = context;
+        }
         @JavascriptInterface
         public boolean checknet(String param){
             i("AndroidtoJs", param);
             return NetWorkCheck.check(MainActivity.this);
+        }
+        @android.webkit.JavascriptInterface
+        public void openImage(String index, String imgs) {
+            Log.i("load", "item->"+index);
+            Log.i("load", "imgs->"+imgs);
+            Intent intent = new Intent();
+            intent.putExtra("imageUrls", imgs);
+            intent.putExtra("curImageIndex", index);
+            intent.setClass(context, PhotoBrowserActivity.class);
+            context.startActivity(intent);
         }
     }
 
@@ -96,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
                     if (mWebView.canGoBack()) {
                         mWebView.goBack();
                     }
-                   // mWebView.reload();
                 }
             }
         });
@@ -122,11 +140,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-            i("load", "url="+url);
+            /*i("load", "url="+url);
             i("load", "userAgent="+userAgent);
             i("load", "contentDisposition="+contentDisposition);
             i("load", "mimetype="+mimetype);
-            i("load", "contentLength="+contentLength);
+            i("load", "contentLength="+contentLength);*/
             Uri uri = Uri.parse(url);
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             startActivity(intent);
@@ -144,8 +162,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             if(!TextUtils.isEmpty(url) && (url.endsWith("apk") || url.contains("download"))){
-                //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                //startActivity(viewIntent);
+
             }else{
                 view.loadUrl(url);
                 return true;
@@ -160,18 +177,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            i("load", "加载完成:"+url);
-            // 设置标题
-            if(url.contains("game")){
-                MainActivity.this.setTitle("游戏");
-            }else if(url.contains("openarea")){
-                MainActivity.this.setTitle("开服");
-            }else if(url.contains("search")){
-                MainActivity.this.setTitle("搜索");
-            }else if(url.contains("rank")){
-                MainActivity.this.setTitle("排行");
+            if(isNumberEnd(url)){
+                Log.i("load", "以数字结尾");
+            }else{
+                // 设置标题
+                if(url.contains("game")){
+                    MainActivity.this.setTitle("游戏");
+                }else if(url.contains("openarea")){
+                    MainActivity.this.setTitle("开服");
+                }else if(url.contains("search")){
+                    MainActivity.this.setTitle("搜索");
+                }else if(url.contains("rank")){
+                    MainActivity.this.setTitle("排行");
+                }
             }
-
             closeProgressDialog();
             mRLayout.setClickable(true);
             if(mIsError){
@@ -197,6 +216,12 @@ public class MainActivity extends AppCompatActivity {
             mRLayout.setVisibility(View.VISIBLE);
             mWebView.setVisibility(View.INVISIBLE);
         }
+    }
+    // 判断字符串是否以数字结尾
+    private boolean isNumberEnd(String str){
+        Pattern pattern = Pattern.compile("\\d+$");
+        Matcher matcher = pattern.matcher(str);
+        return matcher.find();
     }
 
     WebChromeClient webChromeClient = new WebChromeClient() {
