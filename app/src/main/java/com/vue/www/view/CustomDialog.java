@@ -7,10 +7,6 @@ import android.view.WindowManager;
 
 import com.vue.www.R;
 
-/**
- * Author: dlw on 2017/8/30 17:39
- * Email: dailongshao@126.com
- */
 
 public class CustomDialog extends ProgressDialog
 {
@@ -49,6 +45,5 @@ public class CustomDialog extends ProgressDialog
     {
         super.show();
     }
-
 
 }
