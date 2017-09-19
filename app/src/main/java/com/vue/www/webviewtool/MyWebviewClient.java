@@ -55,6 +55,8 @@ public class MyWebviewClient extends WebViewClient {
         return super.shouldOverrideUrlLoading(view, url);
     }
 
+
+
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         showProgressDialog();

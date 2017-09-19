@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setDownloadListener(new MyDownloadListener(this));
         mWebView.addJavascriptInterface(new AndroidtoJs(this), "myObj");
         mWebView.loadUrl("file:///android_asset/index.html");
+        //mWebView.loadUrl("http://www.xin.feicuiedu.com:8088");
     }
 
     protected void initView() {
