@@ -1,6 +1,8 @@
 package com.vue.www.webviewtool;
 
+import android.net.Uri;
 import android.util.Log;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
@@ -25,5 +27,11 @@ public class MyWebChromeClient extends WebChromeClient {
                mDialog.dismiss();
            }
         }
+    }
+
+    // For Android > 5.0
+    public boolean onShowFileChooser (WebView webView, ValueCallback<Uri[]> uploadMsg, WebChromeClient.FileChooserParams fileChooserParams) {
+        //openFileChooserImplForAndroid5(uploadMsg);
+        return true;
     }
 }

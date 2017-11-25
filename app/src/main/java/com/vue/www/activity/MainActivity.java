@@ -1,6 +1,7 @@
 package com.vue.www.activity;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setDownloadListener(new MyDownloadListener(this));
         mWebView.addJavascriptInterface(new AndroidtoJs(this), "myObj");
         mWebView.loadUrl("file:///android_asset/index.html");
-        //mWebView.loadUrl("http://www.xin.feicuiedu.com:8088");
     }
 
     protected void initView() {
@@ -117,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
         String appCachePath = getApplicationContext().getCacheDir().getAbsolutePath();
         mWebSettings.setAppCachePath(appCachePath);
 
-        /*if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
-        }*/
+        }
     }
     private long mkeyTime;
     public boolean onKeyDown(int keyCode, KeyEvent event) {
